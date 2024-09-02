@@ -7,6 +7,8 @@
 #include <fcntl.h>
 #include <cstring>
 #include <cerrno>
+#include <thread>
+#include <chrono>
 
 class StockfishProcess {
 public:
@@ -79,6 +81,7 @@ public:
         ssize_t bytesRead;
         std::string result;
 
+        std::this_thread::sleep_for(std::chrono::milliseconds(250));
         while ((bytesRead = read(stdoutFd, buffer, sizeof(buffer) - 1)) > 0) {
             buffer[bytesRead] = '\0';
             result.append(buffer);
