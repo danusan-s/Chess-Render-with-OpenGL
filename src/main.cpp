@@ -475,7 +475,7 @@ int main() {
     Shader TexShader("../shaders/tvshader.glsl", "../shaders/tfshader.glsl");
 
     // Insert stockfish executable path here
-    StockfishProcess stockfish("../stockfish/stockfish-windows-x86-64-avx2.exe");
+    StockfishProcess stockfish("../stockfish/stockfish-ubuntu-x86-64-avx2");
     
     stockfish.readOutput();
     stockfish.sendCommand("uci");
