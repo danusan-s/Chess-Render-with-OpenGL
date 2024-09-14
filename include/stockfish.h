@@ -11,8 +11,16 @@
 #include <chrono>
 
 class StockfishProcess {
+private:
+    pid_t pid_ = -1;
+    int stdinPipe[2];
+    int stdoutPipe[2];
+    int stdinFd = -1;
+    int stdoutFd = -1;
+    const std::string stockfishPath = "../stockfish/stockfish-ubuntu-x86-64-avx2";
+
 public:
-    StockfishProcess(const std::string& stockfishPath) {
+    StockfishProcess() {
         // Create pipes for standard input and output.
         if (pipe(stdinPipe) == -1) {
             throw std::runtime_error("Failed to create stdin pipe: " + std::string(strerror(errno)));
@@ -81,6 +89,7 @@ public:
         ssize_t bytesRead;
         std::string result;
 
+        // Sleep for a bit to let stockfish think and not make the move instantly or cause read errors
         std::this_thread::sleep_for(std::chrono::milliseconds(250));
         while ((bytesRead = read(stdoutFd, buffer, sizeof(buffer) - 1)) > 0) {
             buffer[bytesRead] = '\0';
@@ -96,12 +105,5 @@ public:
 
         return result;
     }
-
-private:
-    pid_t pid_ = -1;
-    int stdinPipe[2];
-    int stdoutPipe[2];
-    int stdinFd = -1;
-    int stdoutFd = -1;
 };
 

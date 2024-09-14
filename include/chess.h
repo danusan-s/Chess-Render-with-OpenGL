@@ -324,6 +324,7 @@ public:
         }
 
         // If the king is in check after the move, it is invalid and we should revert back
+        // Bug : if enemy puts you in check, you are able to play a move that puts them in check while you are being checked.
         if (isKingInCheck(black)) {
             result = M_Result::INVALID;
         }
