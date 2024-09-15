@@ -1,5 +1,4 @@
 #include "sprite_renderer.h"
-#include <iostream>
 
 SpriteRenderer::SpriteRenderer(const Shader &shader)
 {

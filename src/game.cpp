@@ -1,4 +1,3 @@
-#include <vector>
 #include "game.h"
 #include "resource_manager.h"
 #include "game_object.h"
@@ -9,8 +8,6 @@
 SpriteRenderer* Renderer;
 Chessboard* Board;
 StockfishProcess* Stockfish;
-
-std::vector<std::vector<GameObject*>> Pieces(8,std::vector<GameObject*>(8,nullptr));
 
 Game::Game(unsigned int width, unsigned int height) 
     : State(GAME_ACTIVE), Keys(), Width(width), Height(height)
@@ -27,6 +24,9 @@ Game::~Game()
 
 void Game::Init()
 {
+    GLint maxTextureSize;
+    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTextureSize);
+    std::cout << "Maximum texture size: " << maxTextureSize << std::endl;
     // load shaders
     std::cout << "Loading Shaders" << std::endl;
     ResourceManager::LoadShader("../shaders/sprite_vertex.glsl", "../shaders/sprite_fragment.glsl", nullptr, "sprite");
@@ -42,6 +42,7 @@ void Game::Init()
     // load textures
     std::cout << "Loading Textures" << std::endl;
     ResourceManager::LoadTexture("../textures/block.png",false,"block");
+    ResourceManager::LoadTexture("../textures/awesomeface.png",true,"face");
     ResourceManager::LoadTexture("../textures/king_w.png", true, "king_white");
     ResourceManager::LoadTexture("../textures/queen_w.png",true, "queen_white");
     ResourceManager::LoadTexture("../textures/rook_w.png",true, "rook_white");
@@ -73,22 +74,73 @@ void Game::ProcessInput(float dt)
     }
 }
 
+std::string textureOf(Piece piece){
+    switch (piece.getType()){
+        case Type::King:
+            if (piece.getColor()==Color::White)
+                return "king_white";
+            return "king_black";
+        case Type::Queen:
+            if (piece.getColor()==Color::White)
+                return "queen_white";
+            return "queen_black";
+        case Type::Knight:
+            if (piece.getColor()==Color::White)
+                return "knight_white";
+            return "knight_black";
+        case Type::Bishop:
+            if (piece.getColor()==Color::White)
+                return "bishop_white";
+            return "bishop_black";
+        case Type::Rook:
+            if (piece.getColor()==Color::White)
+                return "rook_white";
+            return "rook_black";
+        case Type::Pawn:
+            if (piece.getColor()==Color::White)
+                return "pawn_white";
+            return "pawn_black";
+        default:
+            return "";
+    }
+    return "";
+}
+
 void Game::Render()
 {
     if(this->State == GAME_ACTIVE)
     {
-        // draw board
         for (int i=0;i<BOARD_SIZE;++i){
             for (int j=0;j<BOARD_SIZE;++j){
+                float squareX = this->Width*(0.1f + SQUARE_SIZE*i);
+                float squareY = this->Height*(0.1f + SQUARE_SIZE*j);
+                float size = std::min(this->Width,this->Height) * SQUARE_SIZE;
                 Renderer->DrawSprite(ResourceManager::GetTexture("block"),
-                        glm::vec2(this->Width*(0.1f + SQUARE_SIZE*i),this->Height*(0.1f + SQUARE_SIZE*j)),
-                        glm::vec2(this->Width*SQUARE_SIZE,this->Height*SQUARE_SIZE),
+                        glm::vec2(squareX,squareY),
+                        glm::vec2(size),
                         0.0f, (((i%2)==(j%2))?glm::make_vec3(LIGHT_SQUARE) : glm::make_vec3(DARK_SQUARE)));
             }
         }
-        // draw pieces 
+
+        for (int i=0;i<BOARD_SIZE;++i){
+            for (int j=0;j<BOARD_SIZE;++j){
+                float squareX = this->Width*(0.1f + SQUARE_SIZE*i);
+                float squareY = this->Height*(0.1f + SQUARE_SIZE*j);
+                float size = std::min(this->Width,this->Height) * (SQUARE_SIZE);
+                Piece piece = Board->getPiece(i,j);
+                if (piece.getColor()!=Color::None){
+                    std::string texture = textureOf(piece);
+                    Renderer->DrawSprite(ResourceManager::GetTexture(texture),
+                            glm::vec2(squareY,squareX),
+                            glm::vec2(size),
+                            0.0f);
+                }
+            }
+        }
     }
 }
+
+
 
 void Game::ResetGame()
 {
