@@ -9,6 +9,7 @@
 // GLFW function declarations
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods); 
 
 // The Width of the screen
 const unsigned int SCREEN_WIDTH = 1200;
@@ -37,6 +38,7 @@ int main(int argc, char *argv[])
 
     glfwSetKeyCallback(window, key_callback);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
 
     // OpenGL configuration
     // --------------------
@@ -107,5 +109,14 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     // make sure the viewport matches the new window dimensions; note that width and 
     // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
+}
+
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+        double xPos, yPos;
+        glfwGetCursorPos(window, &xPos, &yPos);
+        Chess.mouseX = xPos;
+        Chess.mouseY = yPos;
+    }
 }
 

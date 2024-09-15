@@ -1,13 +1,12 @@
 #include "game.h"
 #include "resource_manager.h"
 #include "game_object.h"
-#include "chess.h"
-#include "stockfish.h"
+#include "game_logic.h"
+#include <iostream>
 
 // Game-related State data
 SpriteRenderer* Renderer;
-Chessboard* Board;
-StockfishProcess* Stockfish;
+GameLogicHandler* LogicHandler;
 
 Game::Game(unsigned int width, unsigned int height) 
     : State(GAME_ACTIVE), Keys(), Width(width), Height(height)
@@ -18,15 +17,10 @@ Game::Game(unsigned int width, unsigned int height)
 Game::~Game()
 {
     delete Renderer;
-    delete Board;
-    delete Stockfish;
 }
 
 void Game::Init()
 {
-    GLint maxTextureSize;
-    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTextureSize);
-    std::cout << "Maximum texture size: " << maxTextureSize << std::endl;
     // load shaders
     std::cout << "Loading Shaders" << std::endl;
     ResourceManager::LoadShader("../shaders/sprite_vertex.glsl", "../shaders/sprite_fragment.glsl", nullptr, "sprite");
@@ -37,8 +31,7 @@ void Game::Init()
     ResourceManager::GetShader("sprite").SetMatrix4("projection", projection);
     // set render-specific controls
     Renderer = new SpriteRenderer(ResourceManager::GetShader("sprite"));
-    Board = new Chessboard();
-    Stockfish = new StockfishProcess();
+    LogicHandler = new GameLogicHandler(!playerIsWhite);
     // load textures
     std::cout << "Loading Textures" << std::endl;
     ResourceManager::LoadTexture("../textures/block.png",false,"block");
@@ -66,10 +59,17 @@ void Game::ProcessInput(float dt)
 {
     if (this->State == GAME_ACTIVE)
     {
-        if (this->mouseX > 0 && this->mouseY > 0 && this->mouseX < Width && this->mouseY < Height){
-            float col = mouseX / Width;
-            float row =  mouseY / Height;
-
+        if (this->mouseX > 0 && this->mouseY > 0){
+            float scaledX = mouseX / Width;
+            float scaledY =  mouseY / Height;
+            int row = static_cast<int>((scaledY - 0.1f)*10);
+            int col = static_cast<int>((scaledX - 0.1f)*10);
+            std::cout << row << " " << col << std::endl;
+            if (row>=0 && col>=0 && row<BOARD_SIZE && col<BOARD_SIZE){
+                LogicHandler->clickSquare(row,col);
+            }
+            mouseX = -1;
+            mouseY = -1;
         }    
     }
 }
@@ -127,7 +127,7 @@ void Game::Render()
                 float squareX = this->Width*(0.1f + SQUARE_SIZE*i);
                 float squareY = this->Height*(0.1f + SQUARE_SIZE*j);
                 float size = std::min(this->Width,this->Height) * (SQUARE_SIZE);
-                Piece piece = Board->getPiece(i,j);
+                Piece piece = LogicHandler->Board.getPiece(i,j);
                 if (piece.getColor()!=Color::None){
                     std::string texture = textureOf(piece);
                     Renderer->DrawSprite(ResourceManager::GetTexture(texture),

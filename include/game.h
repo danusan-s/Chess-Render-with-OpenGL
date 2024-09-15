@@ -26,7 +26,7 @@ const float HIGHLIGHTED_LIGHT_SQUARE[3] = { 0.47f,0.77f,0.93f };
 const float CAPTURE_DARK_SQUARE[3] = { 0.92f, 0.25f, 0.20f };
 const float CAPTURE_LIGHT_SQUARE[3] = { 0.92f, 0.25f, 0.20f };
 
-const bool playerIsWhite = false;
+const bool playerIsWhite = true;
 
 // Game holds all game-related state and functionality.
 // Combines all game-related data into a single class for
