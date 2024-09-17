@@ -1,7 +1,7 @@
 #include "game.h"
 #include "resource_manager.h"
-#include "game_object.h"
 #include "game_logic.h"
+#include "sprite_renderer.h"
 #include <iostream>
 
 // Game-related State data
@@ -9,7 +9,7 @@ SpriteRenderer* Renderer;
 GameLogicHandler* LogicHandler;
 
 Game::Game(unsigned int width, unsigned int height) 
-    : State(GAME_ACTIVE), Keys(), Width(width), Height(height)
+    : State(GAME_ACTIVE), Keys(), Width(width), Height(height) , dragging(-1)
 { 
 
 }
@@ -17,6 +17,7 @@ Game::Game(unsigned int width, unsigned int height)
 Game::~Game()
 {
     delete Renderer;
+    delete LogicHandler;
 }
 
 void Game::Init()
@@ -50,26 +51,43 @@ void Game::Init()
     ResourceManager::LoadTexture("../textures/pawn_b.png",true,"pawn_black");
 }
 
-void Game::Update(float dt)
-{
-    // Smooth animation to be implemented here ig ?
+void Game::Update(float dt){
+   if (LogicHandler->blackTurn == playerIsWhite){
+       LogicHandler->makeStockfishMove();
+   } 
 }
 
 void Game::ProcessInput(float dt)
 {
     if (this->State == GAME_ACTIVE)
     {
-        if (this->mouseX > 0 && this->mouseY > 0){
-            float scaledX = mouseX / Width;
-            float scaledY =  mouseY / Height;
+        if (this->clickX > 0 && this->clickY > 0){
+            float scaledX = clickX / Width;
+            float scaledY =  clickY / Height;
             int row = static_cast<int>((scaledY - 0.1f)*10);
             int col = static_cast<int>((scaledX - 0.1f)*10);
+            if (!playerIsWhite){
+                row =  7-row;
+                col = 7-col;
+            }
             std::cout << row << " " << col << std::endl;
+            if (dragging==row*BOARD_SIZE+col){
+                clickX = -1;
+                clickY = -1;
+                dragging = -1;
+                return;
+            }
             if (row>=0 && col>=0 && row<BOARD_SIZE && col<BOARD_SIZE){
                 LogicHandler->clickSquare(row,col);
             }
-            mouseX = -1;
-            mouseY = -1;
+            if (dragging==-1){
+                dragging = row*BOARD_SIZE + col;
+            }
+            else{
+                dragging=-1;
+            }
+            clickX = -1;
+            clickY = -1;
         }    
     }
 }
@@ -106,32 +124,60 @@ std::string textureOf(Piece piece){
     return "";
 }
 
+glm::vec3 colorOf(int type){
+    switch(type){
+        case 1:
+            return glm::make_vec3(LIGHT_SQUARE);
+        case 2:
+            return glm::make_vec3(HIGHLIGHTED_LIGHT_SQUARE);
+        case 3:
+            return glm::make_vec3(CAPTURE_LIGHT_SQUARE);
+        case -1:
+            return glm::make_vec3(DARK_SQUARE);
+        case -2:
+            return glm::make_vec3(HIGHLIGHTED_DARK_SQAURE);
+        case -3:
+            return glm::make_vec3(CAPTURE_DARK_SQUARE);
+        default:
+            break;
+    }
+    return glm::vec3(1.0f);
+}
+
 void Game::Render()
 {
     if(this->State == GAME_ACTIVE)
     {
         for (int i=0;i<BOARD_SIZE;++i){
             for (int j=0;j<BOARD_SIZE;++j){
-                float squareX = this->Width*(0.1f + SQUARE_SIZE*i);
-                float squareY = this->Height*(0.1f + SQUARE_SIZE*j);
+                int row = playerIsWhite?i:7-i;
+                int col = playerIsWhite?j:7-j;
+                float squareX = this->Width*(0.1f + SQUARE_SIZE*col);
+                float squareY = this->Height*(0.1f + SQUARE_SIZE*row);
                 float size = std::min(this->Width,this->Height) * SQUARE_SIZE;
                 Renderer->DrawSprite(ResourceManager::GetTexture("block"),
                         glm::vec2(squareX,squareY),
                         glm::vec2(size),
-                        0.0f, (((i%2)==(j%2))?glm::make_vec3(LIGHT_SQUARE) : glm::make_vec3(DARK_SQUARE)));
+                        0.0f, colorOf(LogicHandler->tileColorState[i][j]));
             }
         }
 
         for (int i=0;i<BOARD_SIZE;++i){
             for (int j=0;j<BOARD_SIZE;++j){
-                float squareX = this->Width*(0.1f + SQUARE_SIZE*i);
-                float squareY = this->Height*(0.1f + SQUARE_SIZE*j);
+                int row = playerIsWhite?i:7-i;
+                int col = playerIsWhite?j:7-j;
+                float squareX = this->Width*(0.1f + SQUARE_SIZE*col);
+                float squareY = this->Height*(0.1f + SQUARE_SIZE*row);
                 float size = std::min(this->Width,this->Height) * (SQUARE_SIZE);
                 Piece piece = LogicHandler->Board.getPiece(i,j);
+                if (dragging==i*BOARD_SIZE+j){
+                    squareX = mouseX-(size/2);
+                    squareY = mouseY-(size/2);
+                }
                 if (piece.getColor()!=Color::None){
                     std::string texture = textureOf(piece);
                     Renderer->DrawSprite(ResourceManager::GetTexture(texture),
-                            glm::vec2(squareY,squareX),
+                            glm::vec2(squareX,squareY),
                             glm::vec2(size),
                             0.0f);
                 }
@@ -144,5 +190,6 @@ void Game::Render()
 
 void Game::ResetGame()
 {
-
+    delete LogicHandler;
+    LogicHandler = new GameLogicHandler(!playerIsWhite);
 }

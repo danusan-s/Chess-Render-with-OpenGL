@@ -26,7 +26,8 @@ const float HIGHLIGHTED_LIGHT_SQUARE[3] = { 0.47f,0.77f,0.93f };
 const float CAPTURE_DARK_SQUARE[3] = { 0.92f, 0.25f, 0.20f };
 const float CAPTURE_LIGHT_SQUARE[3] = { 0.92f, 0.25f, 0.20f };
 
-const bool playerIsWhite = true;
+const bool playerIsWhite = false;
+
 
 // Game holds all game-related state and functionality.
 // Combines all game-related data into a single class for
@@ -37,6 +38,8 @@ public:
     // game state
     GameState               State;	
     bool                    Keys[1024];
+    float                   clickX,clickY;
+    int                     dragging;
     float                   mouseX,mouseY;
     unsigned int            Width, Height;
     // constructor/destructor

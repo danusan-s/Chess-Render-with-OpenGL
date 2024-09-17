@@ -10,6 +10,7 @@
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods); 
+void cursor_pos_callback(GLFWwindow* window,double xpos,double ypos);
 
 // The Width of the screen
 const unsigned int SCREEN_WIDTH = 1200;
@@ -39,6 +40,7 @@ int main(int argc, char *argv[])
     glfwSetKeyCallback(window, key_callback);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetMouseButtonCallback(window, mouse_button_callback);
+    glfwSetCursorPosCallback(window,cursor_pos_callback);
 
     // OpenGL configuration
     // --------------------
@@ -46,7 +48,6 @@ int main(int argc, char *argv[])
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    ResourceManager::Clear();
     // initialize game
     // ---------------
     Chess.Init();
@@ -65,13 +66,13 @@ int main(int argc, char *argv[])
         lastFrame = currentFrame;
         glfwPollEvents();
 
+        // update game loop 
+        // -----------------
+        Chess.Update(deltaTime);
+        
         // manage user input
         // -----------------
         Chess.ProcessInput(deltaTime);
-
-        // update game state
-        // -----------------
-        Chess.Update(deltaTime);
 
         // render
         // ------
@@ -112,11 +113,16 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
-    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+    if (button == GLFW_MOUSE_BUTTON_LEFT && (action == GLFW_PRESS || action==GLFW_RELEASE)) {
         double xPos, yPos;
         glfwGetCursorPos(window, &xPos, &yPos);
-        Chess.mouseX = xPos;
-        Chess.mouseY = yPos;
+        Chess.clickX = xPos;
+        Chess.clickY = yPos;
     }
+}
+
+void cursor_pos_callback(GLFWwindow* window,double xpos,double ypos){
+    Chess.mouseX=xpos;
+    Chess.mouseY=ypos;
 }
 
