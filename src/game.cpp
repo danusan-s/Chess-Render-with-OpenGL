@@ -148,13 +148,14 @@ void Game::Render()
 {
     if(this->State == GAME_ACTIVE)
     {
+        float size = std::min(this->Width,this->Height) * (SQUARE_SIZE);
+
         for (int i=0;i<BOARD_SIZE;++i){
             for (int j=0;j<BOARD_SIZE;++j){
                 int row = playerIsWhite?i:7-i;
                 int col = playerIsWhite?j:7-j;
                 float squareX = this->Width*(0.1f + SQUARE_SIZE*col);
                 float squareY = this->Height*(0.1f + SQUARE_SIZE*row);
-                float size = std::min(this->Width,this->Height) * SQUARE_SIZE;
                 Renderer->DrawSprite(ResourceManager::GetTexture("block"),
                         glm::vec2(squareX,squareY),
                         glm::vec2(size),
@@ -164,16 +165,12 @@ void Game::Render()
 
         for (int i=0;i<BOARD_SIZE;++i){
             for (int j=0;j<BOARD_SIZE;++j){
+                if (i*8+j==dragging) continue;
                 int row = playerIsWhite?i:7-i;
                 int col = playerIsWhite?j:7-j;
                 float squareX = this->Width*(0.1f + SQUARE_SIZE*col);
                 float squareY = this->Height*(0.1f + SQUARE_SIZE*row);
-                float size = std::min(this->Width,this->Height) * (SQUARE_SIZE);
                 Piece piece = LogicHandler->Board.getPiece(i,j);
-                if (dragging==i*BOARD_SIZE+j){
-                    squareX = mouseX-(size/2);
-                    squareY = mouseY-(size/2);
-                }
                 if (piece.getColor()!=Color::None){
                     std::string texture = textureOf(piece);
                     Renderer->DrawSprite(ResourceManager::GetTexture(texture),
@@ -183,9 +180,22 @@ void Game::Render()
                 }
             }
         }
+        
+        // Draw dragged piece last to be on top of every piece
+        if (dragging!=-1){
+            float squareX = mouseX-(size/2);
+            float squareY = mouseY-(size/2);
+            Piece piece = LogicHandler->Board.getPiece(dragging/8,dragging%8);
+            if (piece.getColor()!=Color::None){
+                std::string texture = textureOf(piece);
+                Renderer->DrawSprite(ResourceManager::GetTexture(texture),
+                        glm::vec2(squareX,squareY),
+                        glm::vec2(size),
+                        0.0f);
+            }
+        }
     }
 }
-
 
 
 void Game::ResetGame()
