@@ -2,14 +2,16 @@
 #include "resource_manager.h"
 #include "game_logic.h"
 #include "sprite_renderer.h"
+#include "text_renderer.h"
 #include <iostream>
 
 // Game-related State data
 SpriteRenderer* Renderer;
 GameLogicHandler* LogicHandler;
+TextRenderer* Text;
 
 Game::Game(unsigned int width, unsigned int height) 
-    : State(GAME_ACTIVE), Keys(), Width(width), Height(height) , dragging(-1)
+    : State(GAME_MENU), Keys(), Width(width), Height(height) , dragging(-1)
 { 
 
 }
@@ -32,7 +34,9 @@ void Game::Init()
     ResourceManager::GetShader("sprite").SetMatrix4("projection", projection);
     // set render-specific controls
     Renderer = new SpriteRenderer(ResourceManager::GetShader("sprite"));
-    LogicHandler = new GameLogicHandler(!playerIsWhite);
+    LogicHandler = new GameLogicHandler();
+    Text = new TextRenderer(this->Width, this->Height);
+    Text->Load("../HoodBrothers.ttf", 96);
     // load textures
     std::cout << "Loading Textures" << std::endl;
     ResourceManager::LoadTexture("../textures/block.png",false,"block");
@@ -49,12 +53,23 @@ void Game::Init()
     ResourceManager::LoadTexture("../textures/knight_b.png",true,"knight_black");
     ResourceManager::LoadTexture("../textures/bishop_b.png",true,"bishop_black");
     ResourceManager::LoadTexture("../textures/pawn_b.png",true,"pawn_black");
+
+    buttons.push_back(ClickableObject(glm::vec2(400,150),glm::vec2(400,100),0));
+    buttons.push_back(ClickableObject(glm::vec2(250,450),glm::vec2(300,100),1));
+    buttons.push_back(ClickableObject(glm::vec2(650,450),glm::vec2(300,100),2));
+    buttons.push_back(ClickableObject(glm::vec2(250,750),glm::vec2(300,100),3));
+    buttons.push_back(ClickableObject(glm::vec2(650,750),glm::vec2(300,100),4));
 }
 
 void Game::Update(float dt){
-   if (LogicHandler->blackTurn == playerIsWhite){
-       LogicHandler->makeStockfishMove();
-   } 
+    if (this->State == GAME_ACTIVE){
+        if (LogicHandler->isCompleted()){
+            this->State = GAME_WIN;
+        }
+        else if (LogicHandler->blackTurn == !isPlayerBlack){
+             LogicHandler->makeStockfishMove();
+        }
+    }
 }
 
 void Game::ProcessInput(float dt)
@@ -66,11 +81,10 @@ void Game::ProcessInput(float dt)
             float scaledY =  clickY / Height;
             int row = static_cast<int>((scaledY - 0.1f)*10);
             int col = static_cast<int>((scaledX - 0.1f)*10);
-            if (!playerIsWhite){
+            if (isPlayerBlack){
                 row =  7-row;
                 col = 7-col;
             }
-            std::cout << row << " " << col << std::endl;
             if (dragging==row*BOARD_SIZE+col){
                 clickX = -1;
                 clickY = -1;
@@ -80,15 +94,56 @@ void Game::ProcessInput(float dt)
             if (row>=0 && col>=0 && row<BOARD_SIZE && col<BOARD_SIZE){
                 LogicHandler->clickSquare(row,col);
             }
-            if (dragging==-1){
-                dragging = row*BOARD_SIZE + col;
-            }
-            else{
-                dragging=-1;
-            }
+            dragging = dragging==-1? row*BOARD_SIZE + col : -1;
             clickX = -1;
             clickY = -1;
         }    
+    }
+    else if (this->State == GAME_MENU){
+        if (this->clickX>0 && this->clickY>0){
+            for (ClickableObject button:buttons){
+                if (button.isClicked(clickX,clickY)){
+                    if (dragging!=button.id){
+                        dragging=button.id;
+                        clickX=-1;
+                        clickY=-1;
+                        return;
+                    }
+                    switch (button.id){
+                        case 0:
+                            LogicHandler->Init(isPlayerBlack,BOT_LVL);
+                            std::cout<<"Let the games begin!"<<std::endl;
+                            this->State = GAME_ACTIVE;
+                            break;
+                        case 1:
+                            std::cout<<"You play as white now"<<std::endl;
+                            isPlayerBlack = false;
+                            break;
+                        case 2:
+                            std::cout<<"You play as black now"<<std::endl;
+                            isPlayerBlack = true;
+                            break;
+                        case 3:
+                            BOT_LVL = BOT_LVL<20?BOT_LVL+1:20;
+                            std::cout<<"Increasing Bot level to "<<BOT_LVL<<std::endl;
+                            break;
+                        case 4:
+                            BOT_LVL = BOT_LVL>1?BOT_LVL-1:1;
+                            std::cout<<"Decreasing Bot level to "<<BOT_LVL<<std::endl;
+                            break;
+                        default:
+                            break;
+                    } 
+                    dragging=-1;
+                    break;
+                }
+            }
+            clickX=-1;
+            clickY=-1;
+        }
+    }
+    if (Keys['R']){
+        ResetGame();
     }
 }
 
@@ -146,14 +201,14 @@ glm::vec3 colorOf(int type){
 
 void Game::Render()
 {
-    if(this->State == GAME_ACTIVE)
+    if(this->State == GAME_ACTIVE || this->State == GAME_WIN)
     {
         float size = std::min(this->Width,this->Height) * (SQUARE_SIZE);
 
         for (int i=0;i<BOARD_SIZE;++i){
             for (int j=0;j<BOARD_SIZE;++j){
-                int row = playerIsWhite?i:7-i;
-                int col = playerIsWhite?j:7-j;
+                int row = !isPlayerBlack?i:7-i;
+                int col = !isPlayerBlack?j:7-j;
                 float squareX = this->Width*(0.1f + SQUARE_SIZE*col);
                 float squareY = this->Height*(0.1f + SQUARE_SIZE*row);
                 Renderer->DrawSprite(ResourceManager::GetTexture("block"),
@@ -166,8 +221,8 @@ void Game::Render()
         for (int i=0;i<BOARD_SIZE;++i){
             for (int j=0;j<BOARD_SIZE;++j){
                 if (i*8+j==dragging) continue;
-                int row = playerIsWhite?i:7-i;
-                int col = playerIsWhite?j:7-j;
+                int row = !isPlayerBlack?i:7-i;
+                int col = !isPlayerBlack?j:7-j;
                 float squareX = this->Width*(0.1f + SQUARE_SIZE*col);
                 float squareY = this->Height*(0.1f + SQUARE_SIZE*row);
                 Piece piece = LogicHandler->Board.getPiece(i,j);
@@ -194,6 +249,23 @@ void Game::Render()
                         0.0f);
             }
         }
+
+        if (this->State==GAME_WIN){
+            Text->RenderText("GAME OVER!",600.0f,550.0f,1.0f);
+        }
+    }
+    else if (this->State == GAME_MENU){
+        for(ClickableObject button:buttons){
+            Renderer->DrawSprite(ResourceManager::GetTexture("block"),
+                    button.Position,
+                    button.Size,
+                    0.0f);
+        }
+        Text->RenderText("Start game",600.0f,200.0f,0.5f,glm::vec3(0.0f));
+        Text->RenderText("Choose White",400.0f,500.0f,0.5f,glm::vec3(0.0f));
+        Text->RenderText("Choose Black",800.0f,500.0f,0.5f,glm::vec3(0.0f));
+        Text->RenderText("Diff increase",400.0f,800.0f,0.5f,glm::vec3(0.0f));
+        Text->RenderText("Diff decrease",800.0f,800.0f,0.5f,glm::vec3(0.0f));
     }
 }
 
@@ -201,5 +273,6 @@ void Game::Render()
 void Game::ResetGame()
 {
     delete LogicHandler;
-    LogicHandler = new GameLogicHandler(!playerIsWhite);
+    LogicHandler = new GameLogicHandler();
+    this->State = GAME_MENU;
 }

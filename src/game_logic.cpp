@@ -1,7 +1,6 @@
 #include "game_logic.h"
 
-GameLogicHandler::GameLogicHandler(bool isPlayerBlack){
-    this->isPlayerBlack = isPlayerBlack;
+GameLogicHandler::GameLogicHandler(){
     blackTurn = false;
     prevSelectedCol=-1;
     prevSelectedRow=-1;
@@ -9,6 +8,11 @@ GameLogicHandler::GameLogicHandler(bool isPlayerBlack){
     resetTileColorState();
     Stockfish.readOutput();
     Stockfish.sendCommand("uci");
+
+}
+
+void GameLogicHandler::Init(bool isPlayerBlack,int BOT_LVL){
+    this->isPlayerBlack=isPlayerBlack;
     Stockfish.sendCommand("setoption name Skill Level value "+std::to_string(BOT_LVL));
     Stockfish.sendCommand("isready");
 }
@@ -90,12 +94,13 @@ std::vector<int> stringToCordMove(std::string& move) {
 }
 
 bool GameLogicHandler::handlePlayerMove(int srcR, int srcC, int destR, int destC){
-    if (isPlayerBlack!=blackTurn){
+    if (this->isPlayerBlack!=blackTurn){
+        std::cout<<"NOT YOUR TURN"<<std::endl;
         return false;
     }
-    std::cout<<"Attempting move from "<<srcR<<" "<<srcC<<" to "<<destR<<" "<<destC<<std::endl;
-    if (Board.movePiece({srcR,srcC,destR,destC},isPlayerBlack)){
+    if (Board.movePiece({srcR,srcC,destR,destC},this->isPlayerBlack)){
         blackTurn = !blackTurn;
+        std::cout<<"You've made your move"<<std::endl;
         moveCommand += " " + cordToStringMove({srcR,srcC,destR,destC});
         return true;
     }
@@ -117,6 +122,7 @@ std::string GameLogicHandler::getMoveFromStockfish() {
 }
 
 void GameLogicHandler::makeStockfishMove(){
+    std::cout<<"Stockfish is making it's move"<<std::endl;
     if (moveCommand == "position startpos moves") Stockfish.sendCommand("position startpos");
     else Stockfish.sendCommand(moveCommand);
     Stockfish.sendCommand("go movetime 200");
@@ -131,4 +137,8 @@ void GameLogicHandler::makeStockfishMove(){
     }
     Board.movePiece(move,blackTurn);
     blackTurn = !blackTurn;
+}
+
+bool GameLogicHandler::isCompleted(){
+    return Board.completed;
 }

@@ -34,6 +34,8 @@ class Chessboard
         std::vector<int> prevMove;
 
     public:
+        bool completed=false;
+
         //Initializes the chess board
         Chessboard();
 

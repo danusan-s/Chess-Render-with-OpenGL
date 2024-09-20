@@ -5,11 +5,11 @@
 #include <glm/glm.hpp>
 
 class ClickableObject{
-    private:
-        glm::vec2 Position,Size;
     public:
-        ClickableObject();
+        ClickableObject(glm::vec2 posn,glm::vec2 size,unsigned int function);
         ~ClickableObject();
+        glm::vec2 Position,Size;
+        unsigned int id;
         bool isClicked(float x,float y);
 };
 #endif

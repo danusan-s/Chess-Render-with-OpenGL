@@ -133,6 +133,7 @@ bool Chessboard::movePiece(const std::vector<int>& move,bool black){
         prevMove = move;
 
         if (hasNoPossibleMoves(!black)) {
+            completed=true;
             if (isKingInCheck(!black)) {
                 std::cout << "Game over! " << (black ? "Black" : "White") << " Wins!" << std::endl;
             }

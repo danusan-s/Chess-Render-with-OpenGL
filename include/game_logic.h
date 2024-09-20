@@ -10,10 +10,10 @@ class GameLogicHandler{
         int prevSelectedRow,prevSelectedCol;
         StockfishProcess Stockfish;
         std::string moveCommand;
-        const int BOT_LVL =1;
     public:
-        GameLogicHandler(bool isPlayerBlack);
+        GameLogicHandler();
         ~GameLogicHandler();
+        void Init(bool isPlayerBlack,int BOT_LVL);
         Chessboard Board;
         bool blackTurn;
         int tileColorState[8][8];
@@ -23,6 +23,7 @@ class GameLogicHandler{
         bool handlePlayerMove(int srcR, int srcC, int destR, int destC);
         std::string getMoveFromStockfish();
         void makeStockfishMove();
+        bool isCompleted();
 };
 
 #endif

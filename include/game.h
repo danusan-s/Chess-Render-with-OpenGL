@@ -3,6 +3,8 @@
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include "clickable_object.h"
+#include <vector>
 
 // Represents the current state of the game
 enum GameState {
@@ -11,7 +13,6 @@ enum GameState {
     GAME_WIN
 };
 
-const int BOT_LVL = 1;
 
 constexpr float PLAY_AREA = 0.8f;
 constexpr int BOARD_SIZE = 8;
@@ -26,14 +27,15 @@ const float HIGHLIGHTED_LIGHT_SQUARE[3] = { 0.47f,0.77f,0.93f };
 const float CAPTURE_DARK_SQUARE[3] = { 0.92f, 0.25f, 0.20f };
 const float CAPTURE_LIGHT_SQUARE[3] = { 0.92f, 0.25f, 0.20f };
 
-const bool playerIsWhite = false;
-
 
 // Game holds all game-related state and functionality.
 // Combines all game-related data into a single class for
 // easy access to each of the components and manageability.
 class Game
 {
+private:
+    bool isPlayerBlack = false;
+    unsigned int BOT_LVL = 1;
 public:
     // game state
     GameState               State;	
@@ -42,6 +44,7 @@ public:
     int                     dragging;
     float                   mouseX,mouseY;
     unsigned int            Width, Height;
+    std::vector<ClickableObject> buttons;
     // constructor/destructor
     Game(unsigned int width, unsigned int height);
     ~Game();
