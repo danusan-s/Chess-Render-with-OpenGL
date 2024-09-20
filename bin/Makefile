@@ -1,2 +1,2 @@
 all:
-	g++ -g --std=c++17 ../src/*.cpp ../src/glad.c -o ./render -I../include -I/usr/local/include/freetype2 -lglfw -lfreetype
+	g++ -g --std=c++17 -I../include -L../lib ../src/*.cpp ../src/glad.c -lfreetype -lglfw3dll -o ./render.exe

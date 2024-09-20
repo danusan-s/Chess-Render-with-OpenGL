@@ -17,15 +17,13 @@
 */
 
 #include <iostream>
-#include <unordered_map>
 
 #include "bitboard.h"
-#include "evaluate.h"
 #include "misc.h"
 #include "position.h"
-#include "tune.h"
 #include "types.h"
 #include "uci.h"
+#include "tune.h"
 
 using namespace Stockfish;
 
@@ -36,11 +34,9 @@ int main(int argc, char* argv[]) {
     Bitboards::init();
     Position::init();
 
-    UCI uci(argc, argv);
+    UCIEngine uci(argc, argv);
 
-    Tune::init(uci.options);
-
-    uci.evalFiles = Eval::NNUE::load_networks(uci.workingDirectory(), uci.options, uci.evalFiles);
+    Tune::init(uci.engine_options());
 
     uci.loop();
 

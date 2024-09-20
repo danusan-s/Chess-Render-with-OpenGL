@@ -35,6 +35,7 @@ void Game::Init()
     // set render-specific controls
     Renderer = new SpriteRenderer(ResourceManager::GetShader("sprite"));
     LogicHandler = new GameLogicHandler();
+    std::cout<<"ERM"<<std::endl;
     Text = new TextRenderer(this->Width, this->Height);
     Text->Load("../HoodBrothers.ttf", 96);
     // load textures
