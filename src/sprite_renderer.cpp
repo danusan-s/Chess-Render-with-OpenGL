@@ -8,7 +8,7 @@ SpriteRenderer::SpriteRenderer(const Shader &shader)
 
 SpriteRenderer::~SpriteRenderer()
 {
-    glDeleteVertexArrays(1, &this->quadVAO);
+
 }
 
 void SpriteRenderer::initRenderData()

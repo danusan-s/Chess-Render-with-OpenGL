@@ -5,6 +5,9 @@
 #include <GLFW/glfw3.h>
 #include "clickable_object.h"
 #include <vector>
+#include "sprite_renderer.h"
+#include "game_logic.h"
+#include "text_renderer.h"
 
 // Represents the current state of the game
 enum GameState {
@@ -34,8 +37,12 @@ const float CAPTURE_LIGHT_SQUARE[3] = { 0.92f, 0.25f, 0.20f };
 class Game
 {
 private:
-    bool isPlayerBlack = false;
-    unsigned int BOT_LVL = 1;
+    bool isPlayerBlack;
+    unsigned int BOT_LVL;
+    // Game-related State data
+    SpriteRenderer* Renderer;
+    GameLogicHandler* LogicHandler;
+    TextRenderer* Text;
 public:
     // game state
     GameState               State;	

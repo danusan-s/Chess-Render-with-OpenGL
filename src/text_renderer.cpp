@@ -26,6 +26,8 @@ TextRenderer::TextRenderer(unsigned int width, unsigned int height)
     glBindVertexArray(0);
 }
 
+
+
 void TextRenderer::Load(std::string font, unsigned int fontSize)
 {
     // first clear the previously loaded Characters

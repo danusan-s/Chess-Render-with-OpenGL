@@ -15,7 +15,7 @@ std::map<std::string, Shader>       ResourceManager::Shaders;
 
 Shader ResourceManager::LoadShader(const char *vShaderFile, const char *fShaderFile, const char *gShaderFile, std::string name)
 {
-    std::cout << "Loading Shader: " << name << std::endl;
+    std::cout << "> Loading Shader: " << name << std::endl;
     Shaders[name] = loadShaderFromFile(vShaderFile, fShaderFile, gShaderFile);
     return Shaders[name];
 }
@@ -27,7 +27,7 @@ Shader ResourceManager::GetShader(std::string name)
 
 Texture2D ResourceManager::LoadTexture(const char *file, bool alpha, std::string name)
 {
-    std::cout << "Loading Texture: " << name << std::endl;
+    std::cout << "> Loading Texture: " << name << std::endl;
     Textures[name] = loadTextureFromFile(file, alpha);
     return Textures[name];
 }
@@ -39,15 +39,19 @@ Texture2D ResourceManager::GetTexture(std::string name)
 
 void ResourceManager::Clear()
 {
-    std::cout<<"deleting shaders"<<std::endl;
+    std::cout<<"Deleting loaded resources"<<std::endl;
+
+    std::cout<<"Attempting to delete shaders"<<std::endl;
     // (properly) delete all shaders	
     for (auto iter : Shaders)
         glDeleteProgram(iter.second.ID);
-    std::cout<<"deleting textures"<<std::endl;
+
+    std::cout<<"Attempting to delete textures"<<std::endl;
     // (properly) delete all textures
     for (auto iter : Textures)
         glDeleteTextures(1, &iter.second.ID);
-    std::cout<<"deleted successfully"<<std::endl;
+
+    std::cout<<"Deleted successfully"<<std::endl;
 }
 
 Shader ResourceManager::loadShaderFromFile(const char *vShaderFile, const char *fShaderFile, const char *gShaderFile)
