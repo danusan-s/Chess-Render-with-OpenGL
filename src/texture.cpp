@@ -1,17 +1,16 @@
 #include "texture.h"
 
 Texture2D::Texture2D()
-    : Width(0), Height(0), Internal_Format(GL_RGB), Image_Format(GL_RGB), Wrap_S(GL_CLAMP_TO_EDGE), Wrap_T(GL_CLAMP_TO_EDGE), Filter_Min(GL_LINEAR_MIPMAP_LINEAR), Filter_Max(GL_LINEAR)
-{
+    : Width(0), Height(0), Internal_Format(GL_RGB), Image_Format(GL_RGB), Wrap_S(GL_CLAMP_TO_EDGE),
+      Wrap_T(GL_CLAMP_TO_EDGE), Filter_Min(GL_LINEAR_MIPMAP_LINEAR), Filter_Max(GL_LINEAR) {
     glGenTextures(1, &this->ID);
 }
 
-void Texture2D::Generate(unsigned int width, unsigned int height, unsigned char* data)
-{
+void Texture2D::Generate(unsigned int width, unsigned int height, unsigned char* data) {
     this->Width = width;
     this->Height = height;
     // create Texture
-   // Bind the texture
+    // Bind the texture
     glBindTexture(GL_TEXTURE_2D, this->ID);
 
     // Had an error here due to images not being in a size that is power of 2
@@ -29,7 +28,6 @@ void Texture2D::Generate(unsigned int width, unsigned int height, unsigned char*
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void Texture2D::Bind() const
-{
+void Texture2D::Bind() const {
     glBindTexture(GL_TEXTURE_2D, this->ID);
 }
